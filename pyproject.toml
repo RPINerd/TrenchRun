@@ -1,0 +1,9 @@
+[project]
+name = "TrenchRun"
+version = "1.6"
+description = "A remake of the trench sequence of the vintage star wars arcade cabinet."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pygame>=2.6.1",
+]

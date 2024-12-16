@@ -1,0 +1,55 @@
+# Changelog
+
+Formatting based on [Keep a Changelog](https://keepachangelog.com/).
+
+## [Unreleased]
+
+### Changed
+
+    Fully rewritten for native Python 3
+
+    Updated to use pygame
+
+## [1.5](https://py2.codeskulptor.org/#demos-starwars.py)
+
+### Fixed
+
+    Updated the code to work with CodeSkulptor's new integer and float rules
+
+### Changed
+
+    Velocity damping factor 0.9 -> 0.7 to make movement more predictable
+
+## [1.4](http://www.codeskulptor.org/#user9_WqwyV6z7OsvIYq8.py)
+
+### Added
+
+    Utilised the new text width functions and adapted the game to run at variable frame rates
+
+## [1.3](http://www.codeskulptor.org/#user4-LHqyHJCu49j37Rf.py)
+
+### Fixed
+
+    Bug that allowed barriers without holes to be generated
+
+## [1.2](http://www.codeskulptor.org/#user4-ltFlPO4h6ZD8LNC.py)
+
+### Added
+
+    Vertical lines to the trench walls
+
+    More comments to the code
+
+## [1.1](http://www.codeskulptor.org/#user4-FQssuMMrmX8K9tg.py)
+
+### Added
+
+    Warning about the flashing effects
+
+    Option to turn off flashing effects
+
+### Changed
+
+    Changed references from Photon Torpedoes to Proton Torpedoes
+
+## [1.0](http://www.codeskulptor.org/#user4-TUA5Ti3pPicfK3M.py)
