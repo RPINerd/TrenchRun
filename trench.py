@@ -13,7 +13,7 @@ class Game:
 
     """The primary class containing all game logic and state"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Initialize the game
 
@@ -27,15 +27,18 @@ class Game:
         self.running: bool = True
         self.active_screen: Screen = MainMenuScreen(self)
 
-        stars: list = create_stars()
+        self.stars: list = create_stars()
+        self.violent_death: bool = False
 
-    def run(self):
+    def run(self) -> None:
         while self.running:
-            dt = self.clock.tick(60) / 1000  # Delta time in seconds
+            self.screen.fill((0, 0, 0))
+            self.clock.tick(60)
+
             events = pygame.event.get()
 
             self.active_screen.handle_events(events)
-            self.active_screen.update(dt)
+            self.active_screen.update()
             self.active_screen.render(self.screen)
 
             pygame.display.flip()
