@@ -6,9 +6,13 @@ Formatting based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
-    Fully rewritten for native Python 3
+    Fully rewritten for Python 3
 
     Updated to use pygame
+
+    Huge refactor to take advantage of object-oriented programming
+
+    Full documentation of the code
 
 ## [1.5](https://py2.codeskulptor.org/#demos-starwars.py)
 
