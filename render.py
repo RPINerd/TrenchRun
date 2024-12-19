@@ -340,7 +340,15 @@ def distance(surface: pygame.Surface, distance: int | float) -> None:
             distance_str = "0" + distance_str
         distance_str += "m"
         text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 4, 24, cfg.DISTANCE_COLOUR)
-        text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 4, 29, cfg.DISTANCE_COLOUR)
+
+
+def particles(surface: pygame.Surface, particles: list[list[float, float]]) -> None:
+    """"""
+    c = cfg.CANVAS_CENTER
+    for p in particles:
+        x = p[0] + c[0]
+        y = p[1] + c[1]
+        pygame.draw.circle(surface, cfg.PARTICLE_COLOUR, (x, y), 1, 1)
 
 
 # def message(surface: pygame.Surface, msg: str) -> None:

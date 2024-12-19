@@ -39,6 +39,26 @@ def hex(n: int | float) -> str:
 
 
 @timeit
+def create_stars(star_count: int = 300) -> list[tuple[int, int]]:
+    """
+    Create a list of random star positions
+
+    Args:
+        star_count (int): The number of stars to create; default is 300
+
+    Returns:
+        list: A list of star position tuples
+    """
+    stars: list[tuple[int, int]] = []
+    for _ in range(star_count):
+        x: int = random.randrange(cfg.CANVAS_WIDTH)
+        y: int = random.randrange(cfg.CANVAS_HEIGHT)
+        stars.append((x, y))
+
+    return stars
+
+
+@timeit
 def create_barriers() -> list:
     """
     Creates all of the barriers that appear in the game
@@ -78,6 +98,52 @@ def create_barriers() -> list:
         position += 40 + random.randrange(30)
 
     return barriers
+
+
+@timeit
+def create_particles() -> list:
+    """
+    Create a list of particles that represent the Death Star explosion
+
+    Args:
+        None
+
+    Returns:
+        list: A list of particle positions
+    """
+    radius = cfg.DEATH_STAR_RADIUS
+    particles: list[list[float, float]] = []
+    for _ in range(0, 500):
+        a = random.random() * 2 * math.pi
+        m = random.random()
+        x = math.sin(a) * m * radius
+        y = math.cos(a) * m * radius
+        particles.append([x, y])
+
+    return particles
+
+
+# @timeit
+def move_particles(particles: list[list[float, float]]) -> list[list[float, float]]:
+    """
+    Move the particles of the Death Star explosion
+
+    Args:
+        particles (list): A list of particle positions
+
+    Returns:
+        list: A list of updated particle positions
+    """
+    c = cfg.CANVAS_CENTER
+    for p in particles:
+        x = p[0] + c[0]
+        y = p[1] + c[1]
+        if x >= 0 and x < cfg.CANVAS_WIDTH and y >= 0 and y < cfg.CANVAS_HEIGHT:
+            v = 1.1
+            p[0] *= v
+            p[1] *= v
+
+    return particles
 
 
 def project(point: tuple[float, float, float], pos: tuple[float, float, float]) -> tuple[float, float]:

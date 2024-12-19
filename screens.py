@@ -37,14 +37,23 @@ class Screen:
 
 class MainMenuScreen(Screen):
 
-    """"""
+    """
+    Start Screen
 
-    def __init__(self: Screen, game: Game):
+    The initial screen that the player sees when the game is launched
+
+    Attributes:
+        game (Game): The game object containing the game state and logic
+    """
+
+    def __init__(self: Screen, game: Game) -> None:
+        """"""
         super().__init__(game)
         # TODO on init draw the screen, then only redraw on event Q
         # Initialize game-specific variables and objects
 
-    def handle_events(self: MainMenuScreen, events: list[Event]):
+    def handle_events(self: MainMenuScreen, events: list[Event]) -> None:
+        """"""
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -54,13 +63,15 @@ class MainMenuScreen(Screen):
                     pass
                 elif event.key == pygame.K_ESCAPE:
                     self.game.running = False
+                elif event.key == pygame.K_v:
+                    self.game.set_screen(VictoryScreen(self.game))
 
     def update(self: MainMenuScreen) -> None:
-        # Update game logic and handle user input
-        # Example: Move player, update enemies, check for collisions
+        """"""
         pass
 
     def render(self: MainMenuScreen, surface: pygame.Surface) -> None:
+        """"""
         render.stars(self.game.stars, surface)
         render.deathstar(surface)
         render.intro_text(self, surface)
@@ -68,13 +79,20 @@ class MainMenuScreen(Screen):
 
 class GameplayScreen(Screen):
 
-    """"""
+    """
+    The Core Game
+
+    The main game screen where the player controls the ship and fires torpedoes
+
+    Attributes:
+        game (Game): The game object containing the game state and logic
+    """
 
     def __init__(self, game: Game) -> None:
         """Initialize game-specific variables and objects"""
         super().__init__(game)
-        self.game.game_mode = cfg.MODE_GAME
         # TODO maybe make local to just self, only applies to current game
+        # Player positions are x, y, z (left/right, up/down, forward/back)
         self.game.pos = [0.0, 0.0, 0.0]
         self.game.vel = [0.0, 0.0, cfg.FORWARD_VELOCITY_MS]
         self.game.acc = [0.0, 0.0, 0.0]
@@ -89,15 +107,16 @@ class GameplayScreen(Screen):
 
     def handle_events(self, events: list[Event]) -> None:
         """"""
+        # TODO releasing the key should stop the ship
         for event in events:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key in {pygame.K_LEFT, pygame.K_a}:
                     self.game.acc[0] = -cfg.ACCELERATION_MSS
-                elif event.key == pygame.K_RIGHT:
+                elif event.key in {pygame.K_RIGHT, pygame.K_d}:
                     self.game.acc[0] = cfg.ACCELERATION_MSS
-                elif event.key == pygame.K_UP:
+                elif event.key in {pygame.K_UP, pygame.K_w}:
                     self.game.acc[1] = -cfg.ACCELERATION_MSS
-                elif event.key == pygame.K_DOWN:
+                elif event.key in {pygame.K_DOWN, pygame.K_s}:
                     self.game.acc[1] = cfg.ACCELERATION_MSS
                 elif event.key == pygame.K_SPACE:
                     self.launch_proton_torpedoes()
@@ -112,11 +131,13 @@ class GameplayScreen(Screen):
             self.constrain_ship()
             self.check_for_collisions()
             # self.generate_messages()
-            if self.game.pos[2] > cfg.TRENCH_LENGTH_M + 60:
-                self.game.game_mode = cfg.MODE_VICTORY if self.game.explosion_countdown > 0 else cfg.MODE_INTRO
+
+        if self.game.pos[2] > cfg.TRENCH_LENGTH + 60:
+            self.game.set_screen(VictoryScreen(self.game)) if self.game.explosion_countdown > 0 else self.game.set_screen(MainMenuScreen(self.game))
 
     def render(self, surface: pygame.Surface) -> None:
         """"""
+        print(self.game.vel[0], self.game.vel[1], self.game.vel[2])
         # TODO only render when dead
         render.death(surface, self.game.dead, self.game.violent_death)
 
@@ -131,7 +152,7 @@ class GameplayScreen(Screen):
         # render.message(surface)
 
     def move_ship(self) -> None:
-        """"""
+        """Handle processing the movement of the ship"""
         # Pull up at the end of the trench
         if self.game.pos[2] > cfg.EXHAUST_POSITION:
             self.game.acc[1] = -cfg.ACCELERATION_MSS
@@ -280,3 +301,45 @@ class GameplayScreen(Screen):
             self.game.pt_pos.append([self.game.pos[0] - cfg.TORPEDO_SPAN, self.game.pos[1] + 1, self.game.pos[2]])
             self.game.pt_pos.append([self.game.pos[0] + cfg.TORPEDO_SPAN, self.game.pos[1] + 1, self.game.pos[2]])
             self.game.pt_launch_position = self.game.pos[2]
+
+
+class VictoryScreen(Screen):
+
+    """"""
+
+    def __init__(self, game: Game) -> None:
+        """"""
+        super().__init__(game)
+        self.game.explosion_countdown = 180
+
+    def handle_events(self, events: list[Event]) -> None:
+        """Allow the user to return to the main menu with ESC"""
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.game.set_screen(MainMenuScreen(self.game))
+
+    def update(self) -> None:
+        """On each update, decrement the explosion countdown"""
+        self.game.explosion_countdown -= 1
+
+    def render(self, surface: pygame.Surface) -> None:
+        """Render the victory animation"""
+        render.stars(self.game.stars, surface)
+        if self.game.explosion_countdown <= 0:
+            if self.game.explosion_countdown > -160:
+                base_colour = (64, 32, 16)
+                factor = -self.game.explosion_countdown / 10.0
+                colour = "#"
+                for c in range(0, 3):
+                    colour += utils.hex(base_colour[c] * factor)
+                render.deathstar(surface, colour)
+            elif self.game.explosion_countdown == -160:
+                self.game.particles = utils.create_particles()
+            elif self.game.explosion_countdown > -400:
+                render.particles(surface, self.game.particles)
+                self.game.particles = utils.move_particles(self.game.particles)
+            else:
+                self.game.set_screen(MainMenuScreen(self.game))
+        else:
+            render.deathstar(surface)

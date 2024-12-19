@@ -5,7 +5,7 @@ import pygame
 
 import config as cfg
 from screens import MainMenuScreen, Screen
-from utils import timeit
+from utils import create_stars
 
 
 class Game:
@@ -51,26 +51,6 @@ class Game:
     def set_screen(self, screen: Screen) -> None:
         """Set a new active screen to be rendering"""
         self.active_screen = screen
-
-
-@timeit
-def create_stars(star_count: int = 300) -> list[tuple[int, int]]:
-    """
-    Create a list of random star positions
-
-    Args:
-        star_count (int): The number of stars to create; default is 300
-
-    Returns:
-        list: A list of star position tuples
-    """
-    stars: list[tuple[int, int]] = []
-    for _ in range(star_count):
-        x: int = random.randrange(cfg.CANVAS_WIDTH)
-        y: int = random.randrange(cfg.CANVAS_HEIGHT)
-        stars.append((x, y))
-
-    return stars
 
 
 if __name__ == "__main__":
