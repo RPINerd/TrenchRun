@@ -172,15 +172,15 @@ def trench(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
     Returns:
         None
     """
-    tw = cfg.TRENCH_WIDTH_M // 2
-    th = cfg.TRENCH_HEIGHT_M // 2
+    tw = cfg.TRENCH_WIDTH // 2
+    th = cfg.TRENCH_HEIGHT // 2
     trench = ([-tw, -th], [tw, -th], [tw, th], [-tw, th])
     trench_p: list[tuple[float, float]] = []
     for t in trench:
         near = list(t)
         near.append(pos[2])
         far = list(t)
-        far.append(cfg.TRENCH_LENGTH_M)
+        far.append(cfg.TRENCH_LENGTH)
         near_p = utils.project(near, pos)
         far_p = utils.project(far, pos)
         pygame.draw.line(surface, cfg.TRENCH_COLOUR, near_p, far_p, cfg.LINE_WIDTH)
@@ -191,14 +191,14 @@ def trench(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
     pygame.draw.lines(surface, cfg.TRENCH_COLOUR, False, trench_p, cfg.LINE_WIDTH)
 
     # Draw vertical walls
-    distance = (int(pos[2] + cfg.TRENCH_WALL_INTERVAL_M) // cfg.TRENCH_WALL_INTERVAL_M) * cfg.TRENCH_WALL_INTERVAL_M
-    limit = min(pos[2] + cfg.FAR_PLANE_M, cfg.TRENCH_LENGTH_M)
+    distance = (int(pos[2] + cfg.WALL_INTERVAL) // cfg.WALL_INTERVAL) * cfg.WALL_INTERVAL
+    limit = min(pos[2] + cfg.FAR_PLANE_M, cfg.TRENCH_LENGTH)
     while distance < limit:
         for side in [-1, 1]:
             p1 = utils.project((side * tw, -th, distance), pos)
             p2 = utils.project((side * tw, th, distance), pos)
             pygame.draw.line(surface, cfg.TRENCH_COLOUR, p1, p2, cfg.LINE_WIDTH)
-        distance += cfg.TRENCH_WALL_INTERVAL_M
+        distance += cfg.WALL_INTERVAL
 
 
 def render_barrier(surface: pygame.Surface, pos: tuple[float, float, float], barrier: tuple[float, int, list[int]]) -> None:
@@ -212,48 +212,50 @@ def render_barrier(surface: pygame.Surface, pos: tuple[float, float, float], bar
     Returns:
         None
     """
-    n = barrier[0]  # Barrier Start Position
-    f = n + barrier[1]  # Barrier End Position
-    m = barrier[2]  # Barrier Block Array
-    w = cfg.TRENCH_WIDTH_M / 3.0  # Block Width
-    h = cfg.TRENCH_HEIGHT_M / 3.0  # Block Height
-    hw = w / 2.0  # Block Half Width
-    hh = h / 2.0  # Block Half Height
+    barrier_start = barrier[0]
+    barrier_end = barrier_start + barrier[1]
+    block_array = barrier[2]
+    block_width = cfg.TRENCH_WIDTH / 3.0
+    block_height = cfg.TRENCH_HEIGHT / 3.0
+    block_half_width = block_width / 2.0
+    block_half_height = block_height / 2.0
 
     # Calculate the colour of the blocks, based on base colour and distance.
     # The barrier's base colour is taken from its start position.
-    distance = 1.0 - 0.9 * (n - pos[2]) / cfg.FAR_PLANE_M
-    base_colour = cfg.BARRIER_COLOURS[int(n % len(cfg.BARRIER_COLOURS))]
+    distance = 1.0 - 0.9 * (barrier_start - pos[2]) / cfg.FAR_PLANE_M
+    base_colour = cfg.BARRIER_COLOURS[int(barrier_start % len(cfg.BARRIER_COLOURS))]
     colour = "#"
     for component in range(0, 3):
         colour += utils.hex(base_colour[component] * distance)
-    print(colour)
+
     i = 0  # Block Index ( 0 to 8 )
     for y in range(-1, 2):
         for x in range(-1, 2):
-            if m[i] == 1:  # Test if Block is present
-                px = x * w  # Coordinates at the centre of the block
-                py = y * h
-                # Define a tuple containing the coordinates for this cube. They are indexed by BLOCK_VERTEX.
-                cube = (
-                    (px - hw, py - hh, n),
-                    (px + hw, py - hh, n),
-                    (px + hw, py + hh, n),
-                    (px - hw, py + hh, n),
-                    (px - hw, py - hh, f),
-                    (px + hw, py - hh, f),
-                    (px + hw, py + hh, f),
-                    (px - hw, py + hh, f)
-                )
+            if block_array[i] == 0:
+                i += 1
+                continue
+            px = x * block_width  # Coordinates at the centre of the block
+            py = y * block_height
+            # Define a tuple containing the coordinates for this cube. They are indexed by BLOCK_VERTEX.
+            cube = (
+                (px - block_half_width, py - block_half_height, barrier_start),
+                (px + block_half_width, py - block_half_height, barrier_start),
+                (px + block_half_width, py + block_half_height, barrier_start),
+                (px - block_half_width, py + block_half_height, barrier_start),
+                (px - block_half_width, py - block_half_height, barrier_end),
+                (px + block_half_width, py - block_half_height, barrier_end),
+                (px + block_half_width, py + block_half_height, barrier_end),
+                (px - block_half_width, py + block_half_height, barrier_end)
+            )
 
-                # Project the 3d coordinates into 2d canvas coordinates
-                cube_p = []
-                for p in cube:
-                    cube_p.append(utils.project(p, pos))
+            # Project the 3d coordinates into 2d canvas coordinates
+            cube_p = []
+            for p in cube:
+                cube_p.append(utils.project(p, pos))
 
-                # Draw the lines
-                for vi in cfg.BLOCK_VERTEX:
-                    pygame.draw.line(surface, colour, cube_p[vi[0]], cube_p[vi[1]], cfg.LINE_WIDTH)
+            # Draw the lines
+            for vi in cfg.BLOCK_VERTEX:
+                pygame.draw.line(surface, colour, cube_p[vi[0]], cube_p[vi[1]], cfg.LINE_WIDTH)
             i += 1
 
 
@@ -299,9 +301,9 @@ def barriers(
 
 def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
     """Render the exhaust port"""
-    y = cfg.TRENCH_HEIGHT_M / 2
-    z = cfg.EXHAUST_PORT_POSITION_M
-    w = cfg.EXHAUST_PORT_WIDTH_M
+    y = cfg.TRENCH_HEIGHT / 2
+    z = cfg.EXHAUST_POSITION
+    w = cfg.EXHAUST_WIDTH
     hw = w / 2
     hole = ((-hw, y, z - hw), (hw, y, z - hw), (hw, y, z + hw), (-hw, y, z + hw))
     coords = []
@@ -321,7 +323,7 @@ def torpedoes(surface: pygame.Surface, pt_pos) -> None:
     def render_torpedo(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
         """Render an individual torpedo"""
         centre = utils.project(pos)
-        edge = utils.project([pos[0] - cfg.PROTON_TORPEDO_RADIUS_M, pos[1], pos[2]])
+        edge = utils.project([pos[0] - cfg.TORPEDO_RADIUS, pos[1], pos[2]])
         radius = centre[0] - edge[0]
         pygame.draw.circle(surface, cfg.TORPEDO_COLOUR, centre, radius, cfg.LINE_WIDTH)
 
@@ -331,11 +333,13 @@ def torpedoes(surface: pygame.Surface, pt_pos) -> None:
 
 
 def distance(surface: pygame.Surface, distance: int | float) -> None:
+    """"""
     if distance > 0:
         distance_str = str(distance)
         while len(distance_str) < 5:
             distance_str = "0" + distance_str
         distance_str += "m"
+        text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 4, 24, cfg.DISTANCE_COLOUR)
         text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 4, 29, cfg.DISTANCE_COLOUR)
 
 

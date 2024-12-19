@@ -1,6 +1,5 @@
 """
 """
-import random
 
 import pygame
 
@@ -36,11 +35,17 @@ class Game:
             self.clock.tick(60)
 
             events = pygame.event.get()
-
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.running = False
             self.active_screen.handle_events(events)
             self.active_screen.update()
             self.active_screen.render(self.screen)
 
+            try:
+                print(self.explosion_countdown, end="\r")
+            except:
+                pass
             pygame.display.flip()
 
     def set_screen(self, screen: Screen) -> None:

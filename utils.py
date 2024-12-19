@@ -1,6 +1,7 @@
 """
 """
 import logging
+import math
 import random
 import time
 
@@ -60,7 +61,7 @@ def create_barriers() -> list:
 
     # Determine Start Position and Last Position
     position = 150.0
-    limit = cfg.LAUNCH_POSITION_M - 150
+    limit = cfg.LAUNCH_POSITION - 150
     while position < limit:
         # Create a totally solid barrier
         blocks = [1] * 9

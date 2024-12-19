@@ -132,8 +132,8 @@ class GameplayScreen(Screen):
 
     def move_ship(self) -> None:
         """"""
-        # Pull up at the end of the Trench
-        if self.game.pos[2] > cfg.EXHAUST_PORT_POSITION_M:
+        # Pull up at the end of the trench
+        if self.game.pos[2] > cfg.EXHAUST_POSITION:
             self.game.acc[1] = -cfg.ACCELERATION_MSS
             if self.game.pt_launch_position < 0:
                 render.message("You forgot to fire your torpedoes")
@@ -144,16 +144,30 @@ class GameplayScreen(Screen):
         if self.game.pt_launch_position < 0 and self.is_close_to_launch_position():
             factor *= 4
 
-        for i in range(0, 3):
-            self.game.pos[i] += self.game.vel[i] / factor
-            if self.game.acc[i] != 0:
-                self.game.vel[i] += self.game.acc[i] / factor
-                if self.game.vel[i] < -cfg.VELOCITY_MAX_MS:
-                    self.game.vel[i] = -cfg.VELOCITY_MAX_MS
-                elif self.game.vel[i] > cfg.VELOCITY_MAX_MS:
-                    self.game.vel[i] = cfg.VELOCITY_MAX_MS
-            elif i < 2:
-                self.game.vel[i] *= cfg.VELOCITY_DAMPEN
+        # Move the ship and then apply acceleration to current velocities
+        for axis in range(0, 3):
+
+            # Modify the position by the corresponding velocity
+            self.game.pos[axis] += self.game.vel[axis] / factor
+
+            # Do not apply acceleration/velocity changes to the forward axis
+            if axis == 2:
+                continue
+
+            # If there is an acceleration on this axis, apply it to the velocity
+            if self.game.acc[axis] != 0:
+                self.game.vel[axis] += self.game.acc[axis] / factor
+
+                # Cap the velocity at the maximum
+                if self.game.vel[axis] < -cfg.VELOCITY_MAX_MS:
+                    self.game.vel[axis] = -cfg.VELOCITY_MAX_MS
+                elif self.game.vel[axis] > cfg.VELOCITY_MAX_MS:
+                    self.game.vel[axis] = cfg.VELOCITY_MAX_MS
+
+            # Dampen the velocity if there is no acceleration (acts essentially as friction)
+            # This is only applied to the x/y axis (left/right, up/down)
+            else:
+                self.game.vel[axis] *= cfg.VELOCITY_DAMPEN
 
     def move_torpedoes(self) -> None:
         """Move the Proton Torpedoes down the trench"""
@@ -162,24 +176,24 @@ class GameplayScreen(Screen):
             bullseye = False
             for p in self.game.pt_pos:
                 # Check if the torpedo has reached the point at which it dives towards the floor of the trench
-                if p[2] - self.game.pt_launch_position >= cfg.PROTON_TORPEDO_RANGE_M:
+                if p[2] - self.game.pt_launch_position >= cfg.TORPEDO_RANGE:
                     p[1] += cfg.PROTON_TORPEDO_VELOCITY_MS * 0.5 / cfg.FPS
                 else:
                     p[2] += cfg.PROTON_TORPEDO_VELOCITY_MS / cfg.FPS
 
                 # Check if the torpedo has hit the floor of the trench
-                if p[1] > cfg.TRENCH_HEIGHT_M / 2:
-                    hw = cfg.EXHAUST_PORT_WIDTH_M / 2
-                    z = cfg.EXHAUST_PORT_POSITION_M
+                if p[1] > cfg.TRENCH_HEIGHT / 2:
+                    hw = cfg.EXHAUST_WIDTH / 2
+                    z = cfg.EXHAUST_POSITION
                     ex1 = -hw
                     ex2 = hw
                     ez1 = z - hw
                     ez2 = z + hw
                     # Check if torpedo entirely fit within the exhaust port
-                    if p[0] - cfg.PROTON_TORPEDO_RADIUS_M >= ex1 and \
-                        p[0] + cfg.PROTON_TORPEDO_RADIUS_M <= ex2 and \
-                        p[2] - cfg.PROTON_TORPEDO_RADIUS_M >= ez1 and \
-                        p[2] + cfg.PROTON_TORPEDO_RADIUS_M <= ez2:
+                    if p[0] - cfg.TORPEDO_RADIUS >= ex1 and \
+                        p[0] + cfg.TORPEDO_RADIUS <= ex2 and \
+                        p[2] - cfg.TORPEDO_RADIUS >= ez1 and \
+                        p[2] + cfg.TORPEDO_RADIUS <= ez2:
                         bullseye = True
                     hit = True
             if hit:
@@ -192,8 +206,8 @@ class GameplayScreen(Screen):
 
     def constrain_ship(self) -> None:
         """Keep ship within the trench"""
-        tw = cfg.TRENCH_WIDTH_M // 2
-        th = cfg.TRENCH_HEIGHT_M // 2
+        tw = cfg.TRENCH_WIDTH // 2
+        th = cfg.TRENCH_HEIGHT // 2
 
         # Keep the ship within the horizontal span of the trench
         m = cfg.SHIP_WIDTH_M / 2
@@ -215,10 +229,11 @@ class GameplayScreen(Screen):
         if self.game.current_barrier_index >= len(self.game.barriers):
             return
 
-        barrier = self.game.barriers[self.game.current_barrier_index]
+        barrier: tuple[int, int, list[int]] = self.game.barriers[self.game.current_barrier_index]
 
         # Check if we are in the same Z position as the barrier
         if self.game.pos[2] > barrier[0] and self.game.pos[2] < barrier[0] + barrier[1]:
+
             # Calculate the area that our ship occupies
             x1 = self.game.pos[0] - cfg.SHIP_WIDTH_M / 2.0
             x2 = x1 + cfg.SHIP_WIDTH_M
@@ -226,8 +241,8 @@ class GameplayScreen(Screen):
             y2 = y1 + cfg.SHIP_HEIGHT_M
 
             # Calculate block size
-            bw = cfg.TRENCH_WIDTH_M / 3.0
-            bh = cfg.TRENCH_HEIGHT_M / 3.0
+            bw = cfg.TRENCH_WIDTH / 3.0
+            bh = cfg.TRENCH_HEIGHT / 3.0
             bhw = bw / 2.0
             bhh = bh / 2.0
             for by in range(-1, 2):
@@ -249,7 +264,7 @@ class GameplayScreen(Screen):
 
     def get_distance_to_launch_position(self) -> float:
         """Calculate the distance to the launch position"""
-        return cfg.LAUNCH_POSITION_M - self.game.pos[2]
+        return cfg.LAUNCH_POSITION - self.game.pos[2]
 
     def is_close_to_launch_position(self) -> bool:
         """Indicates whether the ship is 'close' to the launch position."""
@@ -262,6 +277,6 @@ class GameplayScreen(Screen):
         If the torpedoes have not already been launched, they are spawned slightly under the ship
         """
         if self.game.pt_launch_position < 0 and self.is_close_to_launch_position():
-            pt_pos.append([self.game.pos[0] - cfg.PROTON_TORPEDO_SPAN_M, self.game.pos[1] + 1, self.game.pos[2]])
-            pt_pos.append([self.game.pos[0] + cfg.PROTON_TORPEDO_SPAN_M, self.game.pos[1] + 1, self.game.pos[2]])
+            self.game.pt_pos.append([self.game.pos[0] - cfg.TORPEDO_SPAN, self.game.pos[1] + 1, self.game.pos[2]])
+            self.game.pt_pos.append([self.game.pos[0] + cfg.TORPEDO_SPAN, self.game.pos[1] + 1, self.game.pos[2]])
             self.game.pt_launch_position = self.game.pos[2]
