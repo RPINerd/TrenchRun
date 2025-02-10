@@ -5,5 +5,5 @@ description = "A remake of the trench sequence of the vintage star wars arcade c
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "pygame>=2.6.1",
+    "pygame-ce>=2.5.3",
 ]
