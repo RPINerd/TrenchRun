@@ -6,14 +6,12 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pygame.event import Event
-
     from trench import Game
 
 import math
 
-import pygame
-
 import config as cfg
+import pygame
 import render
 import utils
 

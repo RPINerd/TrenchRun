@@ -1,9 +1,8 @@
 """
 """
 
-import pygame
-
 import config as cfg
+import pygame
 from screens import MainMenuScreen, Screen
 from utils import create_stars
 

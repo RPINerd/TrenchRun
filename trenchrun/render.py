@@ -6,9 +6,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from screens import MainMenuScreen
-import pygame
-
 import config as cfg
+import pygame
 import utils
 
 
