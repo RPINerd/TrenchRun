@@ -59,7 +59,7 @@ def create_stars(star_count: int = 300) -> list[tuple[int, int]]:
 
 
 @timeit
-def create_barriers() -> list:
+def create_barriers() -> list[tuple[float, float, list[int]]]:
     """
     Creates all of the barriers that appear in the game
 

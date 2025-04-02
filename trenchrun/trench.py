@@ -29,6 +29,7 @@ class Game:
         self.violent_death: bool = False
 
     def run(self) -> None:
+        """Main game loop"""
         while self.running:
             self.screen.fill((0, 0, 0))
             self.clock.tick(60)

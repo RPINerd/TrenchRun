@@ -1,5 +1,4 @@
-"""
-"""
+"""Functions for rendering specific elements of the game."""
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -11,9 +10,15 @@ import pygame
 import utils
 
 
-def message(msg: str) -> None:
+def message(surface: pygame.Surface, msg: str) -> None:
     """"""
     print(msg)
+    # global message_delay
+    # if (message_delay > 0):
+    y = cfg.CANVAS_HEIGHT // 2 + 90
+    for line in msg.split("\n"):
+        text_centre(surface, line, y, 35, "White")
+        y += 45
 
 
 def stars(stars: list, surface: pygame.Surface) -> None:
@@ -81,16 +86,18 @@ def intro_text(self: MainMenuScreen, surface: pygame.Surface) -> None:
     text_centre(surface, "Press Space to begin your attack run", 340, 24, cfg.INTRO_TEXT_COLOUR)
     text_centre(surface, "Use Cursor Keys to move", 420, 19, cfg.INTRO_TEXT_COLOUR)
     text_centre(surface, "Use Space to launch Proton Torpedo", 440, 19, cfg.INTRO_TEXT_COLOUR)
-    text_right(surface, cfg.VERSION, cfg.CANVAS_WIDTH - 16, 14, 14, cfg.INTRO_TEXT_COLOUR)
+    text_right(surface, cfg.VERSION, (cfg.CANVAS_WIDTH - 16, 14), 14, cfg.INTRO_TEXT_COLOUR)
 
     x1 = centre[0] - 160
     y1 = centre[1] + (185 if self.game.violent_death else 205)
     x2 = centre[0] + 160
     y2 = centre[1] + 225
     pygame.draw.polygon(surface, "Black", ((x1, y1), (x2, y1), (x2, y2), (x1, y2)), 1)
-    text_centre(surface, "Press 'Q' to turn " + ("OFF" if self.game.violent_death else "ON") + " flashing colours", 520, 18, cfg.WARNING_TEXT_COLOUR)
+    flash_warning = "Note: this game contains flashing colours which are not suitable for sufferers of epilepsy"
+    flash_text = f"Press 'Q' to turn {'OFF' if self.game.violent_death else 'ON'} flashing colours"
+    text_centre(surface, flash_text, 520, 18, cfg.WARNING_TEXT_COLOUR)
     if self.game.violent_death:
-        text_centre(surface, "Note: this game contains flashing colours which are not suitable for sufferers of epilepsy", 500, 18, cfg.WARNING_TEXT_COLOUR)
+        text_centre(surface, flash_warning, 500, 18, cfg.WARNING_TEXT_COLOUR)
 
 
 def text_centre(screen: pygame.Surface, text: str, y: int, size: int, colour: str) -> None:
@@ -113,15 +120,14 @@ def text_centre(screen: pygame.Surface, text: str, y: int, size: int, colour: st
     screen.blit(text_surface, text_rect)
 
 
-def text_right(screen: pygame.Surface, text: str, x: int, y: int, size: int, colour: str) -> None:
+def text_right(screen: pygame.Surface, text: str, coords: tuple[int, int], size: int, colour: str) -> None:
     """
     Render given text with the top right corner at the given coordinates
 
     Args:
         screen (pygame.Surface): The surface on which to render the text
         text (str): The text to render
-        x (int): The x-coordinate of the text
-        y (int): The y-coordinate of the text
+        coords (tuple[int, int]): The (x, y) coordinates of the text
         size (int): The font size
         colour (str): The colour of the text
 
@@ -130,7 +136,7 @@ def text_right(screen: pygame.Surface, text: str, x: int, y: int, size: int, col
     """
     font = pygame.font.Font(cfg.FONT_STYLE, size)
     text_surface = font.render(text, True, colour)
-    text_rect = text_surface.get_rect(topright=(x, y))
+    text_rect = text_surface.get_rect(topright=coords)
     screen.blit(text_surface, text_rect)
 
 
@@ -152,7 +158,16 @@ def death(surface: pygame.Surface, dead: bool, violent_death: bool) -> None:
     message_tick = pygame.time.get_ticks()
     if dead:
         if violent_death and (message_tick % 2 == 0):
-            pygame.draw.polygon(surface, "Red", ((0, 0), (cfg.CANVAS_WIDTH, 0), (cfg.CANVAS_WIDTH, cfg.CANVAS_HEIGHT), (0, cfg.CANVAS_HEIGHT)), 1)
+            pygame.draw.polygon(
+                surface,
+                "Red",
+                (
+                    (0, 0),
+                    (cfg.CANVAS_WIDTH, 0),
+                    (cfg.CANVAS_WIDTH, cfg.CANVAS_HEIGHT),
+                    (0, cfg.CANVAS_HEIGHT)
+                ),
+                1)
         message_tick += 1
 
 
@@ -299,7 +314,16 @@ def barriers(
 
 
 def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
-    """Render the exhaust port"""
+    """
+    Render the exhaust port
+
+    Args:
+        surface (pygame.Surface): The surface on which to draw the exhaust port
+        pos (tuple): The player's position in 3D space
+
+    Returns:
+        None
+    """
     y = cfg.TRENCH_HEIGHT / 2
     z = cfg.EXHAUST_POSITION
     w = cfg.EXHAUST_WIDTH
@@ -317,10 +341,30 @@ def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> No
     surface.draw_line(utils.project((0, y, z + w), pos), utils.project((0, y, z + hw), pos), cfg.LINE_WIDTH, cfg.EXHAUST_PORT_COLOUR)
 
 
-def torpedoes(surface: pygame.Surface, pt_pos) -> None:
-    """"""
+def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]]) -> None:
+    """
+    Render the proton torpedoes
+
+    The torpedoes are drawn as circles on the screen, with their size determined by the distance from the player.
+
+    Args:
+        surface (pygame.Surface): The surface on which to draw the torpedoes
+        pt_pos (list): A list of positions of the torpedoes in 3D space
+
+    Returns:
+        None
+    """
     def render_torpedo(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
-        """Render an individual torpedo"""
+        """
+        Render an individual torpedo
+
+        Args:
+            surface (pygame.Surface): The surface on which to draw the torpedo
+            pos (tuple): The position of the torpedo in 3D space
+
+        Returns:
+            None
+        """
         centre = utils.project(pos)
         edge = utils.project([pos[0] - cfg.TORPEDO_RADIUS, pos[1], pos[2]])
         radius = centre[0] - edge[0]
@@ -348,12 +392,3 @@ def particles(surface: pygame.Surface, particles: list[list[float, float]]) -> N
         x = p[0] + c[0]
         y = p[1] + c[1]
         pygame.draw.circle(surface, cfg.PARTICLE_COLOUR, (x, y), 1, 1)
-
-
-# def message(surface: pygame.Surface, msg: str) -> None:
-#     global message_delay
-#     if (message_delay > 0):
-#         y = cfg.CANVAS_HEIGHT // 2 + 90
-#         for line in msg.split("\n"):
-#             text_centre(surface, line, y, 35, "White")
-#             y += 45
