@@ -162,10 +162,9 @@ class GameplayScreen(Screen):
         if self.pos[2] > cfg.EXHAUST_POSITION:
             self.acc[1] = -cfg.ACCELERATION_MSS
             if self.pt_launch_position[2] < 0:
-                # render.message(self.game.screen, "You forgot to fire your torpedoes!")
                 self.message["text"] = "You forgot to fire your torpedoes!"
                 self.message["timer"] = 120
-                self.pt_launch_position = 0
+                self.pt_launch_position[2] = 0
                 # TODO Game over screen
 
         # Slow down when poised to launch torpedo
@@ -233,12 +232,10 @@ class GameplayScreen(Screen):
             if hit:
                 self.pt_pos = []  # Delete the torpedos
                 if bullseye:
-                    # render.message(self.game.screen, "Great shot kid - That was one in a million!")
                     self.message["text"] = "Great shot kid - That was one in a million!"
                     self.message["timer"] = 120
                     self.bullseye = True
                 else:
-                    # render.message(self.game.screen, "Negative - It just impacted off the surface..")
                     self.message["text"] = "Negative - It just impacted off the surface.."
                     self.message["timer"] = 120
                     # TODO Game over screen
@@ -303,7 +300,6 @@ class GameplayScreen(Screen):
 
                             # Check to see whether we intersect horizontally
                             if x1 < bx2 and x2 > bx1:
-                                render.message(self.game.screen, "Game Over")
                                 self.message["text"] = "Game Over"
                                 self.message["timer"] = 1200
                                 self.dead = True

@@ -1,9 +1,14 @@
 [project]
 name = "TrenchRun"
-version = "1.6"
-description = "A remake of the trench sequence of the vintage star wars arcade cabinet."
+version = "1.6_dev"
+authors = [
+    {name = "RPINerd", email = "RPINerd@gmail.com"}
+]
+description = "A remake of the trench sequence of the 1983 Star Wars arcade cabinet."
 readme = "README.md"
+license = "GPL-3.0-or-later"
 requires-python = ">=3.13"
 dependencies = [
+    "icecream>=2.1.4",
     "pygame-ce>=2.5.3",
 ]

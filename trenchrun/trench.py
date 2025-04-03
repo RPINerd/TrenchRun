@@ -42,10 +42,6 @@ class Game:
             self.active_screen.update()
             self.active_screen.render(self.screen)
 
-            try:
-                print(self.explosion_countdown, end="\r")
-            except:
-                pass
             pygame.display.flip()
 
     def set_screen(self, screen: Screen) -> None:
