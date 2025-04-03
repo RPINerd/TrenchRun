@@ -331,15 +331,15 @@ def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> No
     for p in hole:
         coords.append(utils.project(p, pos))
     coords.append(coords[0])
-    surface.draw_polyline(coords, cfg.LINE_WIDTH, cfg.EXHAUST_PORT_COLOUR)
+    pygame.draw.lines(surface, cfg.EXHAUST_PORT_COLOUR, True, coords, cfg.LINE_WIDTH)
 
-    surface.draw_line(utils.project((-w, y, z), pos), utils.project((-hw, y, z), pos), cfg.LINE_WIDTH, cfg.EXHAUST_PORT_COLOUR)
-    surface.draw_line(utils.project((w, y, z), pos), utils.project((hw, y, z), pos), cfg.LINE_WIDTH, cfg.EXHAUST_PORT_COLOUR)
-    surface.draw_line(utils.project((0, y, z - w), pos), utils.project((0, y, z - hw), pos), cfg.LINE_WIDTH, cfg.EXHAUST_PORT_COLOUR)
-    surface.draw_line(utils.project((0, y, z + w), pos), utils.project((0, y, z + hw), pos), cfg.LINE_WIDTH, cfg.EXHAUST_PORT_COLOUR)
+    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((-w, y, z), pos), utils.project((-hw, y, z), pos), cfg.LINE_WIDTH)
+    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((w, y, z), pos), utils.project((hw, y, z), pos), cfg.LINE_WIDTH)
+    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((0, y, z - w), pos), utils.project((0, y, z - hw), pos), cfg.LINE_WIDTH)
+    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((0, y, z + w), pos), utils.project((0, y, z + hw), pos), cfg.LINE_WIDTH)
 
 
-def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]]) -> None:
+def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]], launch_pos: tuple[float, float, float]) -> None:
     """
     Render the proton torpedoes
 
@@ -352,7 +352,7 @@ def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]])
     Returns:
         None
     """
-    def render_torpedo(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
+    def render_torpedo(surface: pygame.Surface, pos: tuple[float, float, float], launch_pos: tuple[float, float, float]) -> None:
         """
         Render an individual torpedo
 
@@ -363,14 +363,14 @@ def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]])
         Returns:
             None
         """
-        centre = utils.project(pos)
-        edge = utils.project([pos[0] - cfg.TORPEDO_RADIUS, pos[1], pos[2]])
+        centre = utils.project(pos, launch_pos)
+        edge = utils.project((pos[0] - cfg.TORPEDO_RADIUS, pos[1], pos[2]), launch_pos)
         radius = centre[0] - edge[0]
         pygame.draw.circle(surface, cfg.TORPEDO_COLOUR, centre, radius, cfg.LINE_WIDTH)
 
     if len(pt_pos) > 0:
         for p in pt_pos:
-            render_torpedo(surface, p)
+            render_torpedo(surface, p, launch_pos)
 
 
 def distance(surface: pygame.Surface, distance: int) -> None:
