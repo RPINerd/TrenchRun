@@ -13,9 +13,7 @@ import utils
 def message(surface: pygame.Surface, msg: str) -> None:
     """"""
     print(msg)
-    # global message_delay
-    # if (message_delay > 0):
-    y = cfg.CANVAS_HEIGHT // 2 + 90
+    y = cfg.CANVAS_CENTER_Y + 90
     for line in msg.split("\n"):
         text_centre(surface, line, y, 35, "White")
         y += 45
@@ -93,7 +91,7 @@ def intro_text(self: MainMenuScreen, surface: pygame.Surface) -> None:
     x2 = centre[0] + 160
     y2 = centre[1] + 225
     pygame.draw.polygon(surface, "Black", ((x1, y1), (x2, y1), (x2, y2), (x1, y2)), 1)
-    flash_warning = "Note: this game contains flashing colours which are not suitable for sufferers of epilepsy"
+    flash_warning = "Note: this game contains flashing colours which may not\nbe suitable for those with a history of epilepsy"
     flash_text = f"Press 'Q' to turn {'OFF' if self.game.violent_death else 'ON'} flashing colours"
     text_centre(surface, flash_text, 520, 18, cfg.WARNING_TEXT_COLOUR)
     if self.game.violent_death:
@@ -375,14 +373,17 @@ def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]])
             render_torpedo(surface, p)
 
 
-def distance(surface: pygame.Surface, distance: int | float) -> None:
-    """"""
+def distance(surface: pygame.Surface, distance: int) -> None:
+    """
+    Render the distance to the exhaust port on the bottom of the screen.
+
+    Args:
+        surface (pygame.Surface): The surface on which to draw the distance
+        distance (int): The distance to the exhaust port
+    """
     if distance > 0:
-        distance_str = str(distance)
-        while len(distance_str) < 5:
-            distance_str = "0" + distance_str
-        distance_str += "m"
-        text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 4, 24, cfg.DISTANCE_COLOUR)
+        distance_str = f"{distance:05d}m"
+        text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 14, 34, cfg.DISTANCE_COLOUR)
 
 
 def particles(surface: pygame.Surface, particles: list[list[float, float]]) -> None:
