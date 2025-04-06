@@ -3,19 +3,46 @@ Hardcoded configuration settings for the game.
 
 All distances or sizes are in meters unless otherwise specified.
 """
+import configparser
+from pathlib import Path
+
+# Load settings from the ini file
+config_parser = configparser.ConfigParser()
+config_parser.read(Path(__file__).parent / "settings.ini")
+
+# Check if the ini file was loaded correctly
+if not config_parser.sections():
+    raise FileNotFoundError("settings.ini file not found or empty. Please check the file path.")
+
+
+def get_setting(section: str, key: str, fallback: str) -> str:
+    """
+    Helper function to get values from the ini file with a fallback
+
+    Args:
+        section (str): The section of the ini file
+        key (str): The key in the section
+        fallback (str): The fallback value if the key is not found
+    Returns:
+        str: The value from the ini file or the fallback value
+    """
+    return config_parser.get(section, key, fallback=fallback)
+
+
 VERSION = "1.6_dev"
 
+
 # Window Settings
-FPS = 60
-CANVAS_WIDTH = 1024
-CANVAS_HEIGHT = 768
+FPS = int(get_setting("Game", "FPS", "60"))
+CANVAS_WIDTH = int(get_setting("Display", "ResolutionX", "1024"))
+CANVAS_HEIGHT = int(get_setting("Display", "ResolutionY", "768"))
 CANVAS_CENTER_X = CANVAS_WIDTH // 2
 CANVAS_CENTER_Y = CANVAS_HEIGHT // 2
 CANVAS_CENTER = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
 FONT_STYLE = "font/DeathStar.ttf"
 
 # Trench Settings
-TRENCH_LENGTH = 3500
+TRENCH_LENGTH = int(get_setting("Game", "TrenchLength", "1500"))
 TRENCH_WIDTH = 10
 TRENCH_HEIGHT = 10
 WALL_INTERVAL = 20
