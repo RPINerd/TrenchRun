@@ -107,7 +107,6 @@ class GameplayScreen(Screen):
 
     def handle_events(self, events: list[Event]) -> None:
         """"""
-        # TODO releasing the key should stop the ship
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key in {pygame.K_LEFT, pygame.K_a}:
@@ -122,6 +121,11 @@ class GameplayScreen(Screen):
                     self.launch_proton_torpedoes()
                 elif event.key == pygame.K_ESCAPE:
                     self.game.set_screen(MainMenuScreen(self.game))
+            if event.type == pygame.KEYUP:
+                if event.key in {pygame.K_LEFT, pygame.K_a} or event.key in {pygame.K_RIGHT, pygame.K_d}:
+                    self.acc[0] = 0
+                elif event.key in {pygame.K_UP, pygame.K_w} or event.key in {pygame.K_DOWN, pygame.K_s}:
+                    self.acc[1] = 0
 
     def update(self) -> None:
         """"""
