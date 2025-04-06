@@ -136,9 +136,10 @@ class GameplayScreen(Screen):
             self.game.set_screen(VictoryScreen(self.game))
 
         self.move_ship()
-        self.move_torpedoes()
         self.constrain_ship()
         self.check_for_collisions()
+        if len(self.pt_pos) > 0:
+            self.move_torpedoes()
 
         if self.message["timer"] > 0:
             render.message(self.game.screen, self.message["text"])
@@ -179,61 +180,57 @@ class GameplayScreen(Screen):
             if self.pt_launch_position[2] < 0:
                 factor *= 4
 
-        # Move the ship and then apply acceleration to current velocities
-        for axis in range(0, 3):
+        # Move the ship down the trench, does not recieve acceleration
+        self.pos[2] += self.vel[2] / factor
 
-            # Modify the position by the corresponding velocity
+        # Move the ship left/right and up/down, then apply acceleration to current velocities
+        for axis in [0, 1]:
+
             self.pos[axis] += self.vel[axis] / factor
 
-            # Do not apply acceleration/velocity changes to the forward axis
-            if axis == 2:
+            # Dampen the velocity if there is no acceleration (acts essentially as friction)
+            if self.acc[axis] == 0:
+                self.vel[axis] *= cfg.VELOCITY_DAMPEN
                 continue
 
             # If there is an acceleration on this axis, apply it to the velocity
-            if self.acc[axis] != 0:
-                self.vel[axis] += self.acc[axis] / factor
+            self.vel[axis] += self.acc[axis] / factor
 
-                # Cap the velocity at the maximum
-                if self.vel[axis] < -cfg.VELOCITY_MAX_MS:
-                    self.vel[axis] = -cfg.VELOCITY_MAX_MS
-                elif self.vel[axis] > cfg.VELOCITY_MAX_MS:
-                    self.vel[axis] = cfg.VELOCITY_MAX_MS
-
-            # Dampen the velocity if there is no acceleration (acts essentially as friction)
-            # This is only applied to the x/y axis (left/right, up/down)
-            else:
-                self.vel[axis] *= cfg.VELOCITY_DAMPEN
+            # Cap the velocity at the maximum
+            if self.vel[axis] < -cfg.VELOCITY_MAX_MS:
+                self.vel[axis] = -cfg.VELOCITY_MAX_MS
+            elif self.vel[axis] > cfg.VELOCITY_MAX_MS:
+                self.vel[axis] = cfg.VELOCITY_MAX_MS
 
     def move_torpedoes(self) -> None:
         """Move the Proton Torpedoes down the trench"""
-        if len(self.pt_pos) > 0:
-            hit = False
-            bullseye = False
-            for p in self.pt_pos:
-                # Check if the torpedo has reached the point at which it dives towards the floor of the trench
-                if p[2] - self.pt_launch_position[2] >= cfg.TORPEDO_RANGE:
-                    p[1] += cfg.PROTON_TORPEDO_VELOCITY_MS * 0.5 / cfg.FPS
-                else:
-                    p[2] += cfg.PROTON_TORPEDO_VELOCITY_MS / cfg.FPS
+        hit = False
+        bullseye = False
+        for p in self.pt_pos:
+            # Check if the torpedo has reached the point at which it dives towards the floor of the trench
+            if p[2] - self.pt_launch_position[2] >= cfg.TORPEDO_RANGE:
+                p[1] += cfg.PROTON_TORPEDO_VELOCITY_MS * 0.5 / cfg.FPS
+            else:
+                p[2] += cfg.PROTON_TORPEDO_VELOCITY_MS / cfg.FPS
 
-                # Check if the torpedo has hit the floor of the trench
-                if p[1] > cfg.TRENCH_HEIGHT / 2:
-                    hw = cfg.EXHAUST_WIDTH / 2
-                    z = cfg.EXHAUST_POSITION
-                    ex1 = -hw
-                    ex2 = hw
-                    ez1 = z - hw
-                    ez2 = z + hw
-                    # Check if torpedo entirely fit within the exhaust port
-                    if p[0] - cfg.TORPEDO_RADIUS >= ex1 and \
-                        p[0] + cfg.TORPEDO_RADIUS <= ex2 and \
-                        p[2] - cfg.TORPEDO_RADIUS >= ez1 and \
-                        p[2] + cfg.TORPEDO_RADIUS <= ez2:
-                        bullseye = True
-                    hit = True
-            if hit:
-                self.pt_pos = []  # Delete the torpedos
-                if bullseye:
+            # Check if the torpedo has hit the floor of the trench
+            if p[1] > cfg.TRENCH_HEIGHT / 2:
+                hw = cfg.EXHAUST_WIDTH / 2
+                z = cfg.EXHAUST_POSITION
+                ex1 = -hw
+                ex2 = hw
+                ez1 = z - hw
+                ez2 = z + hw
+                # Check if torpedo entirely fit within the exhaust port
+                if p[0] - cfg.TORPEDO_RADIUS >= ex1 and \
+                    p[0] + cfg.TORPEDO_RADIUS <= ex2 and \
+                    p[2] - cfg.TORPEDO_RADIUS >= ez1 and \
+                    p[2] + cfg.TORPEDO_RADIUS <= ez2:
+                    bullseye = True
+                hit = True
+        if hit:
+            self.pt_pos = []  # Delete the torpedos
+            if bullseye:
                 self._create_message("Great shot kid - That was one in a million!")
                 self.bullseye = True
             else:
@@ -314,7 +311,7 @@ class GameplayScreen(Screen):
 
     def is_close_to_launch_position(self) -> bool:
         """Indicates whether the ship is 'close' to the launch position."""
-        return math.fabs(self.get_distance_to_launch_position()) < cfg.TORPEDO_RANGE
+        return math.fabs(self.get_distance_to_launch_position()) < 2 * cfg.TORPEDO_RANGE
 
     def launch_proton_torpedoes(self) -> None:
         """
