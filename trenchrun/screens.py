@@ -166,8 +166,7 @@ class GameplayScreen(Screen):
         if self.pos[2] > cfg.EXHAUST_POSITION:
             self.acc[1] = -cfg.ACCELERATION_MSS
             if self.pt_launch_position[2] < 0:
-                self.message["text"] = "You forgot to fire your torpedoes!"
-                self.message["timer"] = 120
+                self._create_message("You forgot to fire your torpedoes!")
                 self.pt_launch_position[2] = 0
                 # TODO Game over screen
 
@@ -175,8 +174,7 @@ class GameplayScreen(Screen):
         factor = float(cfg.FPS)
         if self.is_close_to_launch_position():
             if not self.reached_launch_position:
-                self.message["text"] = "You're all clear kid, now let's\nblow this thing and go home!"
-                self.message["timer"] = 120
+                self._create_message("You're all clear kid, now let's\nblow this thing and go home!")
                 self.reached_launch_position = True
             if self.pt_launch_position[2] < 0:
                 factor *= 4
@@ -236,13 +234,11 @@ class GameplayScreen(Screen):
             if hit:
                 self.pt_pos = []  # Delete the torpedos
                 if bullseye:
-                    self.message["text"] = "Great shot kid - That was one in a million!"
-                    self.message["timer"] = 120
-                    self.bullseye = True
-                else:
-                    self.message["text"] = "Negative - It just impacted off the surface.."
-                    self.message["timer"] = 120
-                    # TODO Game over screen
+                self._create_message("Great shot kid - That was one in a million!")
+                self.bullseye = True
+            else:
+                self._create_message("Negative - It just impacted off the surface..")
+                # TODO Game over screen
 
     def constrain_ship(self) -> None:
         """
@@ -304,9 +300,13 @@ class GameplayScreen(Screen):
 
                             # Check to see whether we intersect horizontally
                             if x1 < bx2 and x2 > bx1:
-                                self.message["text"] = "Game Over"
-                                self.message["timer"] = 1200
+                                self._create_message("Game Over", 1200)
                                 self.dead = True
+
+    def _create_message(self, text: str, time: int = 120) -> None:
+        """Create a message to be displayed on the screen"""
+        self.message["text"] = text
+        self.message["timer"] = time
 
     def get_distance_to_launch_position(self) -> float:
         """Calculate the distance to the launch position"""
