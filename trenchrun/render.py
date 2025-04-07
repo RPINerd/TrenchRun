@@ -382,7 +382,7 @@ def distance(surface: pygame.Surface, distance: int) -> None:
         distance (int): The distance to the exhaust port
     """
     if distance > 0:
-        distance_str = f"{distance:05d}m"
+        distance_str = f"{distance:04d}m"
         text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 14, 34, cfg.DISTANCE_COLOUR)
 
 

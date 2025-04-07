@@ -10,6 +10,7 @@ if TYPE_CHECKING:
 import math
 
 import config as cfg
+import objects
 import pygame
 import render
 import utils
@@ -92,7 +93,7 @@ class GameplayScreen(Screen):
     def __init__(self, game: Game) -> None:
         """Initialize game-specific variables and objects"""
         super().__init__(game)
-        # Player positions are x, y, z (left/right, up/down, forward/back)
+        self.ship = objects.PlayerShip()
         self.pos: list[float] = [0.0, 0.0, 0.0]
         self.vel: list[float] = [0.0, 0.0, cfg.FORWARD_VELOCITY_MS]
         self.acc: list[float] = [0.0, 0.0, 0.0]
@@ -108,24 +109,14 @@ class GameplayScreen(Screen):
     def handle_events(self, events: list[Event]) -> None:
         """"""
         for event in events:
+            if event.type in {pygame.KEYDOWN, pygame.KEYUP} and event.key in cfg.MOVEMENT_KEYS:
+                key_type = 1 if event.type == pygame.KEYDOWN else 0
+                self.ship.steer(key_type, event.key)
             if event.type == pygame.KEYDOWN:
-                if event.key in {pygame.K_LEFT, pygame.K_a}:
-                    self.acc[0] = -cfg.ACCELERATION_MSS
-                elif event.key in {pygame.K_RIGHT, pygame.K_d}:
-                    self.acc[0] = cfg.ACCELERATION_MSS
-                elif event.key in {pygame.K_UP, pygame.K_w}:
-                    self.acc[1] = -cfg.ACCELERATION_MSS
-                elif event.key in {pygame.K_DOWN, pygame.K_s}:
-                    self.acc[1] = cfg.ACCELERATION_MSS
-                elif event.key == pygame.K_SPACE:
-                    self.launch_proton_torpedoes()
+                if event.key == pygame.K_SPACE:
+                    self.torpedos = self.ship.launch_torpedos()
                 elif event.key == pygame.K_ESCAPE:
                     self.game.set_screen(MainMenuScreen(self.game))
-            if event.type == pygame.KEYUP:
-                if event.key in {pygame.K_LEFT, pygame.K_a} or event.key in {pygame.K_RIGHT, pygame.K_d}:
-                    self.acc[0] = 0
-                elif event.key in {pygame.K_UP, pygame.K_w} or event.key in {pygame.K_DOWN, pygame.K_s}:
-                    self.acc[1] = 0
 
     def update(self) -> None:
         """"""
@@ -135,77 +126,38 @@ class GameplayScreen(Screen):
         if (self.pos[2] > cfg.TRENCH_LENGTH + 60) and (self.bullseye):
             self.game.set_screen(VictoryScreen(self.game))
 
-        self.move_ship()
-        self.constrain_ship()
+        travel_event = self.ship.travel()
+        if travel_event:
+            self._create_message(travel_event)
         self.check_for_collisions()
         if len(self.pt_pos) > 0:
             self.move_torpedoes()
 
+        ic(self.ship)
         if self.message["timer"] > 0:
             render.message(self.game.screen, self.message["text"])
             self.message["timer"] -= 1
 
     def render(self, surface: pygame.Surface) -> None:
         """"""
-        # ic(self.pos, self.vel, self.acc)
+        current_position = self.ship.get_position()
         # TODO only render when dead
         render.death(surface, self.dead, self.game.violent_death)
 
-        render.trench(surface, self.pos)
-        render.barriers(surface, self.barriers, self.current_barrier_index, self.pos)
+        render.trench(surface, current_position)
+        render.barriers(surface, self.barriers, self.current_barrier_index, current_position)
 
-        if self.reached_launch_position:
-            render.exhaust_port(surface, self.pos)
+        render.exhaust_port(surface, current_position)
+        if self.ship.reached_launch_zone:
             render.torpedoes(surface, self.pt_pos, self.pt_launch_position)
 
-        render.distance(surface, int(self.get_distance_to_launch_position()))
-        # render.message(surface)
-
-    def move_ship(self) -> None:
-        """Handle processing the movement of the ship"""
-        # Pull up at the end of the trench
-        if self.pos[2] > cfg.EXHAUST_POSITION:
-            self.acc[1] = -cfg.ACCELERATION_MSS
-            if self.pt_launch_position[2] < 0:
-                self._create_message("You forgot to fire your torpedoes!")
-                self.pt_launch_position[2] = 0
-                # TODO Game over screen
-
-        # Slow down when poised to launch torpedo
-        factor = float(cfg.FPS)
-        if self.is_close_to_launch_position():
-            if not self.reached_launch_position:
-                self._create_message("You're all clear kid, now let's\nblow this thing and go home!")
-                self.reached_launch_position = True
-            if self.pt_launch_position[2] < 0:
-                factor *= 4
-
-        # Move the ship down the trench, does not recieve acceleration
-        self.pos[2] += self.vel[2] / factor
-
-        # Move the ship left/right and up/down, then apply acceleration to current velocities
-        for axis in [0, 1]:
-
-            self.pos[axis] += self.vel[axis] / factor
-
-            # Dampen the velocity if there is no acceleration (acts essentially as friction)
-            if self.acc[axis] == 0:
-                self.vel[axis] *= cfg.VELOCITY_DAMPEN
-                continue
-
-            # If there is an acceleration on this axis, apply it to the velocity
-            self.vel[axis] += self.acc[axis] / factor
-
-            # Cap the velocity at the maximum
-            if self.vel[axis] < -cfg.VELOCITY_MAX_MS:
-                self.vel[axis] = -cfg.VELOCITY_MAX_MS
-            elif self.vel[axis] > cfg.VELOCITY_MAX_MS:
-                self.vel[axis] = cfg.VELOCITY_MAX_MS
+        render.distance(surface, int(self.ship.get_distance()))
 
     def move_torpedoes(self) -> None:
         """Move the Proton Torpedoes down the trench"""
         hit = False
         bullseye = False
+
         for p in self.pt_pos:
             # Check if the torpedo has reached the point at which it dives towards the floor of the trench
             if p[2] - self.pt_launch_position[2] >= cfg.TORPEDO_RANGE:
@@ -236,30 +188,6 @@ class GameplayScreen(Screen):
             else:
                 self._create_message("Negative - It just impacted off the surface..")
                 # TODO Game over screen
-
-    def constrain_ship(self) -> None:
-        """
-        Keep ship within the trench
-
-        The trench origin point is at the center of the screen, so bounds checking
-        needs to use the half-width and half-height of the trench
-        """
-        trench_halfwidth = cfg.TRENCH_WIDTH // 2
-        trench_halfheight = cfg.TRENCH_HEIGHT // 2
-        ship_halfwidth = cfg.SHIP_WIDTH_M // 2
-        ship_halfheight = cfg.SHIP_HEIGHT_M // 2
-
-        # Horizontal bounds checking
-        if self.pos[0] < (-trench_halfwidth + ship_halfwidth):
-            self.pos[0] = -trench_halfwidth + ship_halfwidth
-        elif self.pos[0] > (trench_halfwidth - ship_halfwidth):
-            self.pos[0] = trench_halfwidth - ship_halfwidth
-
-        # Vertical bounds checking, allowing ship to leave after torpedo launch
-        if self.pos[1] < (-trench_halfheight + ship_halfheight) and self.pt_launch_position[2] < 0:
-            self.pos[1] = -trench_halfheight + ship_halfheight
-        elif self.pos[1] > (trench_halfheight - ship_halfheight):
-            self.pos[1] = trench_halfheight - ship_halfheight
 
     def check_for_collisions(self) -> None:
         """Determine whether the ship has collided with any blocks"""
@@ -304,25 +232,6 @@ class GameplayScreen(Screen):
         """Create a message to be displayed on the screen"""
         self.message["text"] = text
         self.message["timer"] = time
-
-    def get_distance_to_launch_position(self) -> float:
-        """Calculate the distance to the launch position"""
-        return cfg.LAUNCH_POSITION - self.pos[2]
-
-    def is_close_to_launch_position(self) -> bool:
-        """Indicates whether the ship is 'close' to the launch position."""
-        return math.fabs(self.get_distance_to_launch_position()) < 2 * cfg.TORPEDO_RANGE
-
-    def launch_proton_torpedoes(self) -> None:
-        """
-        Fire the Proton Torpedoes
-
-        If the torpedoes have not already been launched, they are spawned slightly under the ship
-        """
-        if self.pt_launch_position[2] < 0 and self.is_close_to_launch_position():
-            self.pt_pos.append([self.pos[0] - cfg.TORPEDO_SPAN, self.pos[1] + 1, self.pos[2]])
-            self.pt_pos.append([self.pos[0] + cfg.TORPEDO_SPAN, self.pos[1] + 1, self.pos[2]])
-            self.pt_launch_position = self.pos.copy()
 
 
 class VictoryScreen(Screen):
