@@ -8,11 +8,13 @@ from pathlib import Path
 
 # Load settings from the ini file
 config_parser = configparser.ConfigParser()
-config_parser.read(Path(__file__).parent / "settings.ini")
-
-# Check if the ini file was loaded correctly
-if not config_parser.sections():
-    raise FileNotFoundError("settings.ini file not found or empty. Please check the file path.")
+ini_file = Path(__file__).parent / "settings.ini"
+try:
+    config_parser.read(ini_file)
+except FileNotFoundError:
+    raise FileNotFoundError(f"Settings ini file not found! Please check the file path: {ini_file}")
+except configparser.Error as e:
+    raise configparser.Error(f"Error reading the ini file: {e}")
 
 
 def get_setting(section: str, key: str, fallback: str) -> str:
