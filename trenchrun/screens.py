@@ -94,6 +94,7 @@ class GameplayScreen(Screen):
         """Initialize game-specific variables and objects"""
         super().__init__(game)
         self.ship = objects.PlayerShip()
+        self.torpedos: objects.Torpedos | None = None
         self.pos: list[float] = [0.0, 0.0, 0.0]
         self.vel: list[float] = [0.0, 0.0, cfg.FORWARD_VELOCITY_MS]
         self.acc: list[float] = [0.0, 0.0, 0.0]
@@ -104,6 +105,7 @@ class GameplayScreen(Screen):
         self.current_barrier_index: int = 0
         self.bullseye: bool = False
         self.barriers = utils.create_barriers()
+
         self.message = {"text": "Use the Force", "timer": 120}  # Timer is in frames (120 frames of message display)
 
     def handle_events(self, events: list[Event]) -> None:
@@ -130,10 +132,15 @@ class GameplayScreen(Screen):
         if travel_event:
             self._create_message(travel_event)
         self.check_for_collisions()
-        if len(self.pt_pos) > 0:
-            self.move_torpedoes()
+        if self.torpedos is not None:
+            ic(self.torpedos.range)
+            self.torpedos.travel()
+            self.torpedos.check_impact()
+            impact_outcome = self.torpedos.bullseye_check()
+            if impact_outcome:
+                self.torpedos = None
+                self._create_message(impact_outcome)
 
-        ic(self.ship)
         if self.message["timer"] > 0:
             render.message(self.game.screen, self.message["text"])
             self.message["timer"] -= 1
@@ -148,8 +155,9 @@ class GameplayScreen(Screen):
         render.barriers(surface, self.barriers, self.current_barrier_index, current_position)
 
         render.exhaust_port(surface, current_position)
-        if self.ship.reached_launch_zone:
-            render.torpedoes(surface, self.pt_pos, self.pt_launch_position)
+        if self.torpedos is not None:
+            ic(self.torpedos)
+            render.torpedoes(surface, self.torpedos.position, self.torpedos.launch_position)
 
         render.distance(surface, int(self.ship.get_distance()))
 
@@ -247,9 +255,8 @@ class VictoryScreen(Screen):
     def handle_events(self, events: list[Event]) -> None:
         """Allow the user to return to the main menu with ESC"""
         for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.game.set_screen(MainMenuScreen(self.game))
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.game.set_screen(MainMenuScreen(self.game))
 
     def update(self) -> None:
         """On each update, decrement the explosion countdown"""

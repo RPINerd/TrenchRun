@@ -368,9 +368,7 @@ def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]],
         radius = centre[0] - edge[0]
         pygame.draw.circle(surface, cfg.TORPEDO_COLOUR, centre, radius, cfg.LINE_WIDTH)
 
-    if len(pt_pos) > 0:
-        for p in pt_pos:
-            render_torpedo(surface, p, launch_pos)
+    render_torpedo(surface, pt_pos, launch_pos)
 
 
 def distance(surface: pygame.Surface, distance: int) -> None:
@@ -383,7 +381,7 @@ def distance(surface: pygame.Surface, distance: int) -> None:
     """
     if distance > 0:
         distance_str = f"{distance:04d}m"
-        text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 14, 34, cfg.DISTANCE_COLOUR)
+        text_centre(surface, distance_str, cfg.CANVAS_HEIGHT - 16, 34, cfg.DISTANCE_COLOUR)
 
 
 def particles(surface: pygame.Surface, particles: list[list[float, float]]) -> None:
