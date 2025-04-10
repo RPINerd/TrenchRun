@@ -7,13 +7,12 @@ if TYPE_CHECKING:
     from pygame.event import Event
     from trench import Game
 
-import math
-
 import config as cfg
 import objects
 import pygame
 import render
 import utils
+from icecream import ic
 
 
 class Screen:
@@ -94,7 +93,7 @@ class GameplayScreen(Screen):
         """Initialize game-specific variables and objects"""
         super().__init__(game)
         self.ship = objects.PlayerShip()
-        self.torpedos: objects.Torpedos | None = None
+        self.torpedos = objects.Torpedos()
         self.pos: list[float] = [0.0, 0.0, 0.0]
         self.vel: list[float] = [0.0, 0.0, cfg.FORWARD_VELOCITY_MS]
         self.acc: list[float] = [0.0, 0.0, 0.0]
@@ -108,6 +107,8 @@ class GameplayScreen(Screen):
 
         self.message = {"text": "Use the Force", "timer": 120}  # Timer is in frames (120 frames of message display)
 
+        self.debug = True
+
     def handle_events(self, events: list[Event]) -> None:
         """"""
         for event in events:
@@ -115,8 +116,8 @@ class GameplayScreen(Screen):
                 key_type = 1 if event.type == pygame.KEYDOWN else 0
                 self.ship.steer(key_type, event.key)
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    self.torpedos = self.ship.launch_torpedos()
+                if event.key == pygame.K_SPACE and self.ship.reached_launch_zone:
+                    self.torpedos.fire(self.ship.get_position())
                 elif event.key == pygame.K_ESCAPE:
                     self.game.set_screen(MainMenuScreen(self.game))
 
@@ -128,17 +129,18 @@ class GameplayScreen(Screen):
         if (self.pos[2] > cfg.TRENCH_LENGTH + 60) and (self.bullseye):
             self.game.set_screen(VictoryScreen(self.game))
 
+        # ic(self.ship)
         travel_event = self.ship.travel()
         if travel_event:
             self._create_message(travel_event)
         self.check_for_collisions()
-        if self.torpedos is not None:
-            ic(self.torpedos.range)
+        ic(self.torpedos)
+        if self.torpedos.launched:
+            # ic(self.torpedos.range)
             self.torpedos.travel()
             self.torpedos.check_impact()
             impact_outcome = self.torpedos.bullseye_check()
             if impact_outcome:
-                self.torpedos = None
                 self._create_message(impact_outcome)
 
         if self.message["timer"] > 0:
@@ -155,11 +157,14 @@ class GameplayScreen(Screen):
         render.barriers(surface, self.barriers, self.current_barrier_index, current_position)
 
         render.exhaust_port(surface, current_position)
-        if self.torpedos is not None:
+        if self.torpedos.launched:
             ic(self.torpedos)
-            render.torpedoes(surface, self.torpedos.position, self.torpedos.launch_position)
+            render.torpedoes(surface, self.torpedos)
 
         render.distance(surface, int(self.ship.get_distance()))
+
+        if self.debug:
+            render.debug(surface, self.ship.get_position())
 
     def move_torpedoes(self) -> None:
         """Move the Proton Torpedoes down the trench"""

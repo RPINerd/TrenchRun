@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from objects import Torpedos
     from screens import MainMenuScreen
 import config as cfg
 import pygame
@@ -12,7 +13,7 @@ import utils
 
 def message(surface: pygame.Surface, msg: str) -> None:
     """"""
-    print(msg)
+    # print(msg)
     y = cfg.CANVAS_CENTER_Y + 90
     for line in msg.split("\n"):
         text_centre(surface, line, y, 35, "White")
@@ -339,7 +340,7 @@ def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> No
     pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((0, y, z + w), pos), utils.project((0, y, z + hw), pos), cfg.LINE_WIDTH)
 
 
-def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]], launch_pos: tuple[float, float, float]) -> None:
+def torpedoes(surface: pygame.Surface, torpedos: Torpedos) -> None:
     """
     Render the proton torpedoes
 
@@ -347,28 +348,16 @@ def torpedoes(surface: pygame.Surface, pt_pos: list[tuple[float, float, float]],
 
     Args:
         surface (pygame.Surface): The surface on which to draw the torpedoes
-        pt_pos (list): A list of positions of the torpedoes in 3D space
+        torpedos (Torpedos): The torpedos object containing the torpedo positions and launch position
 
     Returns:
         None
     """
-    def render_torpedo(surface: pygame.Surface, pos: tuple[float, float, float], launch_pos: tuple[float, float, float]) -> None:
-        """
-        Render an individual torpedo
-
-        Args:
-            surface (pygame.Surface): The surface on which to draw the torpedo
-            pos (tuple): The position of the torpedo in 3D space
-
-        Returns:
-            None
-        """
-        centre = utils.project(pos, launch_pos)
-        edge = utils.project((pos[0] - cfg.TORPEDO_RADIUS, pos[1], pos[2]), launch_pos)
+    for torpedo in (torpedos.l_torpedo, torpedos.r_torpedo):
+        centre = utils.project(torpedo, torpedos.launch_position)
+        edge = utils.project((torpedo[0] - cfg.TORPEDO_RADIUS, torpedo[1], torpedo[2]), torpedos.launch_position)
         radius = centre[0] - edge[0]
         pygame.draw.circle(surface, cfg.TORPEDO_COLOUR, centre, radius, cfg.LINE_WIDTH)
-
-    render_torpedo(surface, pt_pos, launch_pos)
 
 
 def distance(surface: pygame.Surface, distance: int) -> None:
@@ -391,3 +380,20 @@ def particles(surface: pygame.Surface, particles: list[list[float, float]]) -> N
         x = p[0] + c[0]
         y = p[1] + c[1]
         pygame.draw.circle(surface, cfg.PARTICLE_COLOUR, (x, y), 1, 1)
+
+
+def debug(surface: pygame.Surface, pos: tuple[float, float, float]) -> None:
+    """
+    Render debug information
+
+    Args:
+        surface (pygame.Surface): The surface on which to render the debug information
+        pos (tuple): The player's position in 3D space
+        velocity (float): The player's velocity
+
+    Returns:
+        None
+    """
+    text_right(surface, f"X: {pos[0]:.1f}", (cfg.CANVAS_WIDTH - 16, 14), 16, "White")
+    text_right(surface, f"Y: {pos[1]:.1f}", (cfg.CANVAS_WIDTH - 16, 28), 16, "White")
+    text_right(surface, f"Z: {pos[2]:.1f}", (cfg.CANVAS_WIDTH - 16, 42), 16, "White")
