@@ -12,3 +12,22 @@ dependencies = [
     "icecream>=2.1.4",
     "pygame-ce>=2.5.3",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.11.2",
+    "flit_core>=3.11,<4",
+    "pytest>=7.4.0",
+]
+
+[project.urls]
+homepage = "https://github.com/RPINerd/TrenchRun"
+issues = "https://github.com/RPINerd/TrenchRun/issues"
+
+[build-system]
+requires = ["flit_core >=3.11,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.metadata]
+module = "trenchrun"
+author = "RPINerd"
