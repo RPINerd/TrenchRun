@@ -82,7 +82,7 @@ class Torpedos:
             torpedo[2] += self.velocity / cfg.FPS
             self.range -= self.velocity / cfg.FPS
             if self.range <= 0:
-                torpedo[1] -= (self.velocity * 3) / cfg.FPS
+                torpedo[1] -= (self.velocity * 0.3) / cfg.FPS
 
     def check_impact(self) -> None:
         """Check if the torpedoes have either hit the floor or entered the exhaust port"""
