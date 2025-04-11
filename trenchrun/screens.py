@@ -96,12 +96,6 @@ class GameplayScreen(Screen):
         self.torpedos = objects.Torpedos()
         self.barriers = utils.create_barriers()
         self.current_barrier_index: int = 0
-        # self.pos: list[float] = [0.0, 0.0, 0.0]
-        # self.vel: list[float] = [0.0, 0.0, cfg.FORWARD_VELOCITY_MS]
-        # self.acc: list[float] = [0.0, 0.0, 0.0]
-        # self.pt_pos: list[list[float]] = []
-        # self.pt_launch_position: list[float, float, float] = [0.0, 0.0, -1.0]
-        # self.reached_launch_position: bool = False
         self.dead: bool = False
         self.bullseye: bool = False
 
@@ -177,45 +171,11 @@ class GameplayScreen(Screen):
         if self.debug:
             render.debug(surface, self.ship.get_position())
 
-    # def move_torpedoes(self) -> None:
-    #     """Move the Proton Torpedoes down the trench"""
-    #     hit = False
-    #     bullseye = False
-
-    #     for p in self.pt_pos:
-    #         # Check if the torpedo has reached the point at which it dives towards the floor of the trench
-    #         if p[2] - self.pt_launch_position[2] >= cfg.TORPEDO_RANGE:
-    #             p[1] += cfg.PROTON_TORPEDO_VELOCITY_MS * 0.5 / cfg.FPS
-    #         else:
-    #             p[2] += cfg.PROTON_TORPEDO_VELOCITY_MS / cfg.FPS
-
-    #         # Check if the torpedo has hit the floor of the trench
-    #         if p[1] > cfg.TRENCH_HEIGHT / 2:
-    #             hw = cfg.EXHAUST_WIDTH / 2
-    #             z = cfg.EXHAUST_POSITION
-    #             ex1 = -hw
-    #             ex2 = hw
-    #             ez1 = z - hw
-    #             ez2 = z + hw
-    #             # Check if torpedo entirely fit within the exhaust port
-    #             if p[0] - cfg.TORPEDO_RADIUS >= ex1 and \
-    #                 p[0] + cfg.TORPEDO_RADIUS <= ex2 and \
-    #                 p[2] - cfg.TORPEDO_RADIUS >= ez1 and \
-    #                 p[2] + cfg.TORPEDO_RADIUS <= ez2:
-    #                 bullseye = True
-    #             hit = True
-    #     if hit:
-    #         self.pt_pos = []  # Delete the torpedos
-    #         if bullseye:
-    #             self._create_message("Great shot kid - That was one in a million!")
-    #             self.bullseye = True
-    #         else:
-    #             self._create_message("Negative - It just impacted off the surface..")
-    #             # TODO Game over screen
-
-    def check_for_collisions(self) -> None:
+    def check_for_collisions(self) -> bool:
         """Determine whether the ship has collided with any blocks"""
-        # TODO borked, but works if you never move
+        if self.debug:
+            return False
+
         if self.current_barrier_index >= len(self.barriers):
             return False
 
