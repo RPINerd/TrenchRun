@@ -123,8 +123,14 @@ class GameplayScreen(Screen):
 
     def update(self) -> None:
         """"""
+        if self.message["timer"] > 0:
+            render.message(self.game.screen, self.message["text"])
+            self.message["timer"] -= 1
+
         if self.dead:
-            self.game.set_screen(MainMenuScreen(self.game))
+            if self.message["timer"] <= 0:
+                self.game.set_screen(MainMenuScreen(self.game))
+            return
 
         if (self.ship.get_position()[2] > cfg.TRENCH_LENGTH + 60) and (self.bullseye):
             self.game.set_screen(VictoryScreen(self.game))
@@ -138,7 +144,11 @@ class GameplayScreen(Screen):
         if self.ship.get_position()[2] > self.barriers[self.current_barrier_index][0] and self.current_barrier_index < len(self.barriers) - 1:
             self.current_barrier_index += 1
 
-        self.check_for_collisions()
+        if self.check_for_collisions():
+            self.dead = True
+            self._create_message("Game over!")
+            # TODO Game over screen
+
         ic(self.torpedos)
         if self.torpedos.launched:
             # ic(self.torpedos.range)
@@ -147,10 +157,6 @@ class GameplayScreen(Screen):
             impact_outcome = self.torpedos.bullseye_check()
             if impact_outcome:
                 self._create_message(impact_outcome)
-
-        if self.message["timer"] > 0:
-            render.message(self.game.screen, self.message["text"])
-            self.message["timer"] -= 1
 
     def render(self, surface: pygame.Surface) -> None:
         """"""
@@ -211,41 +217,43 @@ class GameplayScreen(Screen):
         """Determine whether the ship has collided with any blocks"""
         # TODO borked, but works if you never move
         if self.current_barrier_index >= len(self.barriers):
-            return
+            return False
 
         barrier: tuple[int, int, list[int]] = self.barriers[self.current_barrier_index]
         pos = self.ship.get_position()
 
         # Check if we are in the same Z position as the barrier
-        if pos[2] > barrier[0] and pos[2] < barrier[0] + barrier[1]:
+        if pos[2] < barrier[0] or pos[2] > barrier[0] + barrier[1]:
+            return False
 
-            # Calculate the area that our ship occupies
-            x1 = pos[0] - cfg.SHIP_WIDTH_M / 2.0
-            x2 = x1 + cfg.SHIP_WIDTH_M
-            y1 = pos[1] - cfg.SHIP_HEIGHT_M / 2.0
-            y2 = y1 + cfg.SHIP_HEIGHT_M
+        # Calculate the area that our ship occupies
+        x1 = pos[0] - cfg.SHIP_WIDTH_M / 2.0
+        x2 = x1 + cfg.SHIP_WIDTH_M
+        y1 = pos[1] - cfg.SHIP_HEIGHT_M / 2.0
+        y2 = y1 + cfg.SHIP_HEIGHT_M
 
-            # Calculate block size
-            bw = cfg.TRENCH_WIDTH / 3.0
-            bh = cfg.TRENCH_HEIGHT / 3.0
-            bhw = bw / 2.0
-            bhh = bh / 2.0
-            for by in range(-1, 2):
-                by1 = by * bh - bhh
-                by2 = by1 + bh
+        # Calculate block size
+        bw = cfg.TRENCH_WIDTH / 3.0
+        bh = cfg.TRENCH_HEIGHT / 3.0
+        bhw = bw / 2.0
+        bhh = bh / 2.0
+        for by in range(-1, 2):
+            by1 = by * bh - bhh
+            by2 = by1 + bh
 
-                # Check to see whether we intersect vertically
-                if y1 < by2 and y2 > by1:
-                    for bx in range(-1, 2):
-                        block_index = (by + 1) * 3 + bx + 1
-                        if barrier[2][block_index] == 1:
-                            bx1 = bx * bw - bhw
-                            bx2 = bx1 + bw
+            # Check to see whether we intersect vertically
+            if y1 < by2 and y2 > by1:
+                for bx in range(-1, 2):
+                    block_index = (by + 1) * 3 + bx + 1
+                    if barrier[2][block_index] == 1:
+                        bx1 = bx * bw - bhw
+                        bx2 = bx1 + bw
 
-                            # Check to see whether we intersect horizontally
-                            if x1 < bx2 and x2 > bx1:
-                                self._create_message("Game Over", 1200)
-                                self.dead = True
+                        # Check to see whether we intersect horizontally
+                        if x1 < bx2 and x2 > bx1:
+                            return True
+
+        return False
 
     def _create_message(self, text: str, time: int = 120) -> None:
         """Create a message to be displayed on the screen"""
