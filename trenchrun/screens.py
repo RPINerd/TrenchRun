@@ -8,11 +8,12 @@ if TYPE_CHECKING:
     from trench import Game
 
 import config as cfg
-import objects
 import pygame
 import render
 import utils
 from icecream import ic
+from player import PlayerShip
+from torpedos import Torpedos
 
 
 class Screen:
@@ -92,8 +93,8 @@ class GameplayScreen(Screen):
     def __init__(self, game: Game) -> None:
         """Initialize game-specific variables and objects"""
         super().__init__(game)
-        self.ship = objects.PlayerShip()
-        self.torpedos = objects.Torpedos()
+        self.ship = PlayerShip()
+        self.torpedos = Torpedos()
         self.barriers = utils.create_barriers()
         self.current_barrier_index: int = 0
         self.dead: bool = False
@@ -143,9 +144,9 @@ class GameplayScreen(Screen):
             self._create_message("Game over!")
             # TODO Game over screen
 
-        ic(self.torpedos)
-        if self.torpedos.launched:
-            # ic(self.torpedos.range)
+        if self.torpedos.launched and not self.torpedos.impact:
+            if pygame.time.get_ticks() % 10 == 0:
+                ic(self.torpedos)
             self.torpedos.travel()
             self.torpedos.check_impact()
             impact_outcome = self.torpedos.bullseye_check()
@@ -156,14 +157,14 @@ class GameplayScreen(Screen):
         """"""
         current_position = self.ship.get_position()
         # TODO only render when dead
-        render.death(surface, self.dead, self.game.violent_death)
+        if self.dead:
+            render.death(surface, self.dead, self.game.violent_death)
 
         render.trench(surface, current_position)
         render.barriers(surface, self.barriers, self.current_barrier_index, current_position)
 
         render.exhaust_port(surface, current_position)
         if self.torpedos.launched:
-            ic(self.torpedos)
             render.torpedoes(surface, self.torpedos)
 
         render.distance(surface, int(self.ship.get_distance()))

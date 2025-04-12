@@ -1,6 +1,5 @@
 """"""
 import config as cfg
-from torpedos import Torpedos
 
 
 class PlayerShip:
@@ -129,13 +128,3 @@ class PlayerShip:
             self.acceleration[1] = cfg.VERTICAL_KEYS[key] * key_type
         else:
             raise ValueError(f"Invalid key: {key}")
-
-    def launch_torpedos(self) -> Torpedos | None:
-        """"""
-        if self.torpedos_launched:
-            return None
-        if not self._in_launch_range():
-            return None
-        self.movement_factor = cfg.FPS
-        self.torpedos_launched = True
-        return Torpedos(self.get_position())
