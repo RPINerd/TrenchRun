@@ -15,8 +15,8 @@ class Game:
         """
         Initialize the game
 
-        Initialize pygame module, game window, set up the starting screen, and call a few helper
-        initialization methods
+        Initialize pygame module, game window, set up the starting screen, and call a few
+        helper initialization methods
         """
         pygame.init()
         pygame.display.set_caption("Star Wars")

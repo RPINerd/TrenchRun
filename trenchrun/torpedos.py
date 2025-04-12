@@ -1,5 +1,6 @@
 """"""
 import config as cfg
+from icecream import ic
 
 
 class Torpedos:
@@ -52,11 +53,12 @@ class Torpedos:
         """Check if the torpedoes have entered the exhaust port."""
         exhaust_radius = cfg.EXHAUST_WIDTH / 2
         exhaust_z_limits = [
-            cfg.EXHAUST_POSITION - exhaust_radius + cfg.TORPEDO_RADIUS,
-            cfg.EXHAUST_POSITION + exhaust_radius - cfg.TORPEDO_RADIUS
+            (cfg.EXHAUST_POSITION - exhaust_radius) + cfg.TORPEDO_RADIUS,
+            (cfg.EXHAUST_POSITION + exhaust_radius) - cfg.TORPEDO_RADIUS
             ]
 
         if self.l_torpedo[2] < exhaust_z_limits[0] or self.l_torpedo[2] > exhaust_z_limits[1]:
+            ic(self.l_torpedo, exhaust_z_limits)
             return
 
         # TODO need to check x alignment of torpedos!
@@ -73,8 +75,8 @@ class Torpedos:
             return
         self.launched = True
         self.launch_position = (position[0], position[1], position[2])
-        self.l_torpedo = [position[0] - self.span / 2, position[1], position[2]]
-        self.r_torpedo = [position[0] + self.span / 2, position[1], position[2]]
+        self.l_torpedo = [position[0] - self.span / 2, position[1] + 0.4, position[2]]
+        self.r_torpedo = [position[0] + self.span / 2, position[1] + 0.4, position[2]]
 
     def travel(self) -> None:
         """Move the torpedoes forward, if at their range limit also drop them down."""
@@ -92,8 +94,6 @@ class Torpedos:
         if self.l_torpedo[1] > -cfg.TRENCH_HEIGHT // 2:
             return
 
-        # self.l_torpedo: list[float] = [0.0, 0.0, 0.0]
-        # self.r_torpedo: list[float] = [0.0, 0.0, 0.0]
         self.impact = True
         self._check_ontarget()
 
