@@ -4,8 +4,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from objects import Torpedos
     from screens import MainMenuScreen
+    from torpedos import Torpedos
 import config as cfg
 import pygame
 import utils
@@ -353,9 +353,12 @@ def torpedoes(surface: pygame.Surface, torpedos: Torpedos) -> None:
     Returns:
         None
     """
+    if torpedos.impact:
+        return
+
     for torpedo in (torpedos.l_torpedo, torpedos.r_torpedo):
-        centre = utils.project(torpedo, torpedos.launch_position)
-        edge = utils.project((torpedo[0] - cfg.TORPEDO_RADIUS, torpedo[1], torpedo[2]), torpedos.launch_position)
+        centre = utils.project((torpedo[0], abs(torpedo[1]), torpedo[2]), torpedos.launch_position)
+        edge = utils.project((torpedo[0] - cfg.TORPEDO_RADIUS, abs(torpedo[1]), torpedo[2]), torpedos.launch_position)
         radius = centre[0] - edge[0]
         pygame.draw.circle(surface, cfg.TORPEDO_COLOUR, centre, radius, cfg.LINE_WIDTH)
 
