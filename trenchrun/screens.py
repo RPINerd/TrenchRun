@@ -112,7 +112,11 @@ class GameplayScreen(Screen):
                 self.ship.steer(key_type, event.key)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and self.ship.reached_launch_zone:
+                    if self.torpedos.impact or self.torpedos.launched:
+                        self._create_message("Out of ammo!!", 45)
+                        continue
                     self.torpedos.fire(self.ship.get_position())
+                    self.ship.movement_factor = cfg.FPS
                 elif event.key == pygame.K_ESCAPE:
                     self.game.set_screen(MainMenuScreen(self.game))
 
