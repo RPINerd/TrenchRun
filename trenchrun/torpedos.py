@@ -51,8 +51,9 @@ class Torpedos:
 
     def __repr__(self) -> str:
         """Return a string representation of the torpedoes."""
-        metric_line = f"{self.l_torpedo[0]:.2f},{self.l_torpedo[1]:.2f},{self.l_torpedo[2]:.2f},{self.launch_position[2]:.2f},{self.range:.2f},{self.velocity:.2f}"
-        return metric_line
+        return f"""
+            {self.l_torpedo[0]:.2f},{self.l_torpedo[1]:.2f},{self.l_torpedo[2]:.2f},{self.launch_position[2]:.2f},{self.range:.2f},{self.velocity:.2f}
+            """.strip()
 
     def _check_ontarget(self) -> None:
         """Check if the torpedoes have entered the exhaust port."""

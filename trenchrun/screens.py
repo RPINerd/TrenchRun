@@ -123,6 +123,7 @@ class GameplayScreen(Screen):
 
     def update(self) -> None:
         """"""
+        curr_pos = self.ship.get_position()
         if self.message["timer"] > 0:
             render.message(self.game.screen, self.message["text"])
             self.message["timer"] -= 1
@@ -132,16 +133,15 @@ class GameplayScreen(Screen):
                 self.game.set_screen(MainMenuScreen(self.game))
             return
 
-        if (self.ship.get_position()[2] > cfg.TRENCH_LENGTH + 60) and (self.bullseye):
+        if (curr_pos[2] > cfg.TRENCH_LENGTH + 60) and (self.bullseye):
             self.game.set_screen(VictoryScreen(self.game))
 
-        # ic(self.ship)
         travel_event = self.ship.travel()
         if travel_event:
             self._create_message(travel_event)
 
         # Update the barrier index based on the ship's position
-        if self.ship.get_position()[2] > self.barriers[self.current_barrier_index][0] and self.current_barrier_index < len(self.barriers) - 1:
+        if curr_pos[2] > self.barriers[self.current_barrier_index][0] and self.current_barrier_index < len(self.barriers) - 1:
             self.current_barrier_index += 1
 
         if self.check_for_collisions():
@@ -178,9 +178,6 @@ class GameplayScreen(Screen):
 
     def check_for_collisions(self) -> bool:
         """Determine whether the ship has collided with any blocks"""
-        if self.debug:
-            return False
-
         if self.current_barrier_index >= len(self.barriers):
             return False
 

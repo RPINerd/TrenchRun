@@ -334,10 +334,30 @@ def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> No
     coords.append(coords[0])
     pygame.draw.lines(surface, cfg.EXHAUST_PORT_COLOUR, True, coords, cfg.LINE_WIDTH)
 
-    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((-w, y, z), pos), utils.project((-hw, y, z), pos), cfg.LINE_WIDTH)
-    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((w, y, z), pos), utils.project((hw, y, z), pos), cfg.LINE_WIDTH)
-    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((0, y, z - w), pos), utils.project((0, y, z - hw), pos), cfg.LINE_WIDTH)
-    pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((0, y, z + w), pos), utils.project((0, y, z + hw), pos), cfg.LINE_WIDTH)
+    pygame.draw.line(
+        surface,
+        cfg.EXHAUST_PORT_COLOUR,
+        utils.project((-w, y, z), pos),
+        utils.project((-hw, y, z), pos),
+        cfg.LINE_WIDTH)
+    pygame.draw.line(
+        surface,
+        cfg.EXHAUST_PORT_COLOUR,
+        utils.project((w, y, z), pos),
+        utils.project((hw, y, z), pos),
+        cfg.LINE_WIDTH)
+    pygame.draw.line(
+        surface,
+        cfg.EXHAUST_PORT_COLOUR,
+        utils.project((0, y, z - w), pos),
+        utils.project((0, y, z - hw), pos),
+        cfg.LINE_WIDTH)
+    pygame.draw.line(
+        surface,
+        cfg.EXHAUST_PORT_COLOUR,
+        utils.project((0, y, z + w), pos),
+        utils.project((0, y, z + hw), pos),
+        cfg.LINE_WIDTH)
 
 
 def torpedoes(surface: pygame.Surface, torpedos: Torpedos, player: tuple[float, float, float]) -> None:

@@ -5,7 +5,7 @@ All distances or sizes are in meters unless otherwise specified.
 """
 from pygame.locals import K_DOWN, K_LEFT, K_RIGHT, K_UP, K_a, K_d, K_s, K_w
 
-VERSION = "1.6_dev"
+VERSION = "1.6"
 
 
 # Window Settings
@@ -18,10 +18,10 @@ CANVAS_CENTER = (CANVAS_CENTER_X, CANVAS_CENTER_Y)
 FONT_STYLE = "font/DeathStar.ttf"
 
 # Trench Settings
-TRENCH_LENGTH = 700
+TRENCH_LENGTH = 2400
 TRENCH_WIDTH = 10
 TRENCH_HEIGHT = 10
-WALL_INTERVAL = 20
+WALL_INTERVAL = 25
 EXHAUST_POSITION = TRENCH_LENGTH - 100
 EXHAUST_WIDTH = TRENCH_WIDTH / 3.0
 

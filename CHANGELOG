@@ -2,13 +2,13 @@
 
 Formatting based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [1.6]
 
 ### Changed
 
     Fully rewritten for Python 3
 
-    Updated to use pygame
+    Updated to use pygame-ce
 
     Huge refactor to take advantage of object-oriented programming
 

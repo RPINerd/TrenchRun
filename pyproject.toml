@@ -1,6 +1,6 @@
 [project]
 name = "TrenchRun"
-version = "1.6_dev"
+version = "1.6"
 authors = [
     {name = "RPINerd", email = "RPINerd@gmail.com"}
 ]

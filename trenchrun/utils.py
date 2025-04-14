@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 def timeit(func: callable) -> callable:
     """Wrapper to measure the execution time of a function"""
-    def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):  #noqa
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
@@ -155,7 +155,6 @@ def project(point: tuple[float, float, float], pos: tuple[float, float, float]) 
 
     Args:
         point (tuple): The 3D point to project
-        # TODO Check this, why draw from the ship's position?
         pos (tuple): Current position of the ship
 
     Returns:
