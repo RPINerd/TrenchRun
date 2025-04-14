@@ -340,7 +340,7 @@ def exhaust_port(surface: pygame.Surface, pos: tuple[float, float, float]) -> No
     pygame.draw.line(surface, cfg.EXHAUST_PORT_COLOUR, utils.project((0, y, z + w), pos), utils.project((0, y, z + hw), pos), cfg.LINE_WIDTH)
 
 
-def torpedoes(surface: pygame.Surface, torpedos: Torpedos) -> None:
+def torpedoes(surface: pygame.Surface, torpedos: Torpedos, player: tuple[float, float, float]) -> None:
     """
     Render the proton torpedoes
 
@@ -349,6 +349,7 @@ def torpedoes(surface: pygame.Surface, torpedos: Torpedos) -> None:
     Args:
         surface (pygame.Surface): The surface on which to draw the torpedoes
         torpedos (Torpedos): The torpedos object containing the torpedo positions and launch position
+        player (tuple): The player's position in 3D space
 
     Returns:
         None
@@ -357,8 +358,8 @@ def torpedoes(surface: pygame.Surface, torpedos: Torpedos) -> None:
         return
 
     for torpedo in (torpedos.l_torpedo, torpedos.r_torpedo):
-        centre = utils.project((torpedo[0], abs(torpedo[1]), torpedo[2]), torpedos.launch_position)
-        edge = utils.project((torpedo[0] - cfg.TORPEDO_RADIUS, abs(torpedo[1]), torpedo[2]), torpedos.launch_position)
+        centre = utils.project((torpedo[0], abs(torpedo[1]), torpedo[2]), player)
+        edge = utils.project((torpedo[0] - cfg.TORPEDO_RADIUS, abs(torpedo[1]), torpedo[2]), player)
         radius = centre[0] - edge[0]
         pygame.draw.circle(surface, cfg.TORPEDO_COLOUR, centre, radius, cfg.LINE_WIDTH)
 
