@@ -116,6 +116,7 @@ class GameplayScreen(Screen):
                         self._create_message("Out of ammo!!", 45)
                         continue
                     self.torpedos.fire(self.ship.get_position())
+                    self.ship.torpedos_launched = True
                     self.ship.movement_factor = cfg.FPS
                 elif event.key == pygame.K_ESCAPE:
                     self.game.set_screen(MainMenuScreen(self.game))
@@ -149,8 +150,7 @@ class GameplayScreen(Screen):
             # TODO Game over screen
 
         if self.torpedos.launched and not self.torpedos.impact:
-            if pygame.time.get_ticks() % 10 == 0:
-                ic(self.torpedos)
+            ic(self.torpedos)
             self.torpedos.travel()
             self.torpedos.check_impact()
             impact_outcome = self.torpedos.bullseye_check()
