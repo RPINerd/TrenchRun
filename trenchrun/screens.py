@@ -169,7 +169,7 @@ class GameplayScreen(Screen):
 
         render.exhaust_port(surface, current_position)
         if self.torpedos.launched:
-            render.torpedoes(surface, self.torpedos)
+            render.torpedoes(surface, self.torpedos, current_position)
 
         render.distance(surface, int(self.ship.get_distance()))
 
