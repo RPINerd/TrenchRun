@@ -4,10 +4,8 @@
 
 # Python
 *.pyc
-.python-version
 __pycache__/
 
 # Temp files
 *.log
 *.tmp
-*.lock
